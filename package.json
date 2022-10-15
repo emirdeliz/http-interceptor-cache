@@ -1,0 +1,8 @@
+{
+  "name": "http-interceptor-cache",
+  "version": "1.0.0",
+  "description": "Chrome extension to intercept HTTP requests and make cache",
+  "main": "index.js",
+  "author": "Emir Marques - <emirdeliz@gmail.com>",
+  "license": "MIT"
+}
