@@ -1,7 +1,7 @@
 {
 	"manifest_version": 3,
 	"name": "Intercept HTTP and return from cache",
-	"version": "1.1",
+	"version": "1.0.0",
 	"description": "Chrome extension to intercept HTTP requests and return from cache",
 	"icons": {
 		"16": "images/icon-16.png",
@@ -10,12 +10,14 @@
 		"128": "images/icon-128.png"
 	},
 	"action": {
-		"default_icon": "images/icon-16-disabled.png"
+		"default_icon": "images/icon-16-disabled.png",
+		"default_title": "Interceptor Settings",
+		"default_popup": "src/html/popup.html"
 	},
 	"content_scripts": [
 		{
 			"js": [
-				"src/index.js"
+				"dist/scripts/index.js"
 			],
 			"matches": [
 				"<all_urls>"
@@ -34,7 +36,8 @@
 	"web_accessible_resources": [
 		{
 			"resources": [
-				"src/content-script.js",
+				"dist/scripts/constants.js",
+				"dist/scripts/content-script.js",
 				"images/icon-16.png",
 				"images/icon-16-disabled.png"
 			],
@@ -44,8 +47,7 @@
 		}
 	],
 	"background": {
-		"service_worker": "src/service-worker.js",
+		"service_worker": "dist/scripts/service-worker.js",
 		"type": "module"
-	},
-	"key": "gbnjnikpmojonmejodjfemmbcmkcjkmi"
+	}
 }

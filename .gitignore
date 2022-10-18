@@ -1,0 +1,7 @@
+dist
+node_modules
+.vscode-test/
+*.vsix
+.history
+.parcel-cache
+yarn-error.log

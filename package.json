@@ -1,8 +1,23 @@
 {
-  "name": "http-interceptor-cache",
-  "version": "1.0.0",
-  "description": "Chrome extension to intercept HTTP requests and make cache",
-  "main": "index.js",
-  "author": "Emir Marques - <emirdeliz@gmail.com>",
-  "license": "MIT"
+	"name": "http-interceptor-cache",
+	"version": "1.0.0",
+	"description": "Chrome extension to intercept HTTP requests and make cache",
+	"main": "dist/scripts/index.js",
+	"author": "Emir Marques - <emirdeliz@gmail.com>",
+	"license": "MIT",
+	"type": "module",
+	"source": ["src/scripts/index.ts", "src/scripts/service-worker.ts", "src/scripts/content-script.ts", "src/scripts/constants.ts", "src/html/popup.html"],
+	"targets": {
+		"main": false
+	},
+	"devDependencies": {
+		"@types/chrome": "^0.0.198",
+		"@types/serviceworker": "^0.0.53",
+		"parcel": "^2.7.0",
+		"typescript": "^4.8.4"
+	},
+	"scripts": {
+		"watch": "parcel watch --no-source-maps",
+		"build": "parcel build --no-source-maps"
+	}
 }

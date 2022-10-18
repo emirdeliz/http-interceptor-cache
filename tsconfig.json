@@ -1,0 +1,15 @@
+{
+	"compilerOptions": {
+		"strict": true,
+		"target": "esnext",
+		"allowJs": true,
+		"lib": ["es2022", "es6", "dom"],
+		"esModuleInterop": true,
+		"allowSyntheticDefaultImports": true,
+		"sourceMap": false,
+		"outDir": "dist",
+		"noEmitOnError": true,
+		"skipLibCheck": true
+	},
+	"exclude": ["node_modules"]
+}
