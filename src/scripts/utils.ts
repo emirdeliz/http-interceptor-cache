@@ -62,3 +62,11 @@ export const injectScript = ({ path, script }: { path?: string; script?: string 
 		(document.head || document.documentElement).appendChild(s);
 	});
 };
+
+export const injectCss = async ({ path }: { path: string }) => {
+	const style = document.createElement('link');
+	style.id = chrome.runtime.id;
+	style.href = chrome.runtime.getURL(path);
+	style.rel = 'stylesheet';
+	document.documentElement.appendChild(style);
+}

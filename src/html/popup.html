@@ -1,6 +1,19 @@
-<html>
-  <body>
-    <h1>Hello Extensions</h1>
-    
+<html class="body-container">
+	<head>
+		<link rel="stylesheet" href="../css/popup.css" />
+		<script type="module" type="text/javascript" src="../scripts/popup.js"></script>
+	</head>
+  <body class="body-container">
+		<header class="header-container">
+			<h3>Interceptor Settings</h3>
+		</header>
+		<div class="grid-container">
+			<div class="grid-item">
+				<input type="text" class="browser-style input-text" placeholder="enter with the interceptor regex"/>
+			</div>
+			<div class="grid-item">
+				<button id="btn-save-settings" class="browser-style btn">Apply</button>
+			</div>
+		</div>
   </body>
 </html>

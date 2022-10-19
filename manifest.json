@@ -11,8 +11,8 @@
 	},
 	"action": {
 		"default_icon": "images/icon-16-disabled.png",
-		"default_title": "Interceptor Settings",
-		"default_popup": "src/html/popup.html"
+		"default_popup": "dist/html/popup.html",
+		"default_title": "Interceptor Settings"
 	},
 	"content_scripts": [
 		{
