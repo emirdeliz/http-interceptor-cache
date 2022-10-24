@@ -1,7 +1,10 @@
 export const MESSAGE_UPDATE_EXTENSION_IS_ENABLED_KEY = 'update-extension-is-enable';
 export const MESSAGE_CHECK_IF_EXTENSION_IS_ENABLED_KEY = 'check-if-extension-is-enabled';
+export const MESSAGE_UPDATE_STATE_KEY = 'update-state';
+export const MESSAGE_GET_STATE_KEY = 'get-state';
 export const MESSAGE_GET_TAB_ID_KEY ='get-tab-id';
 export const APP_NAME = 'http-interceptor-cache';
 export const SERVICE_WORKER_SCRIPT_ID = 'http-interceptor-cache-sw';
+export const HTTP_METHODS_BY_PASS = ['HEAD', 'OPTIONS', 'CONNECT', 'TRACE'];
 export const IMAGE_DISABLED_PATH = '../../images/icon-16-disabled.png';
 export const IMAGE_ENABLED_PATH = '../../images/icon-16.png';

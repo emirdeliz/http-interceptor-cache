@@ -1,4 +1,4 @@
-import { APP_NAME } from './constants';
+import { APP_NAME, MESSAGE_GET_STATE_KEY, MESSAGE_UPDATE_STATE_KEY } from './constants';
 
 let cache: Cache;
 async function getCacheInstance() {
@@ -8,13 +8,23 @@ async function getCacheInstance() {
 	return cache;
 }
 
-export function getExtensionStatusByTab(tabId?: number) {
-	const isEnabled = localStorage.getItem(`${APP_NAME}-enabled-${tabId}`) === 'true';
-	return isEnabled;
+export function updateExtensionState(
+	key: string,
+	value: string | boolean,
+	callback?: Function
+) {
+	const messageKey = MESSAGE_UPDATE_STATE_KEY;
+	chrome.runtime.sendMessage({ messageKey, key, value }, function () {
+		callback && callback();
+	});
 }
 
-export function setExtensionStatusByTab(tabId?: number, isEnabled?: boolean) {
-	localStorage.setItem(`${APP_NAME}-enabled-${tabId}`, String(isEnabled));
+export function getExtensionState(key: string, callback?: Function) {
+	const messageKey = MESSAGE_GET_STATE_KEY;
+	chrome.runtime.sendMessage({ messageKey, key }, function (response) {
+		console.log({ key, response });
+		callback && callback(response ? response[key] : '');
+	});
 }
 
 export function getCurrentTab() {

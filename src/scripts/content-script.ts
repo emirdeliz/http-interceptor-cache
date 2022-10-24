@@ -1,10 +1,15 @@
+import { HTTP_METHODS_BY_PASS } from "./constants";
 import { getFromCache, putInCache } from "./utils";
 
 const openOriginal = window.XMLHttpRequest.prototype.open;
 window.XMLHttpRequest.prototype.open = function () {
+	const method = arguments[0];
 	const url = arguments[1];
 	// @ts-ignore
 	this.url = url;
+
+	// @ts-ignore
+	this.method = method;
 
 	// @ts-ignore
 	openOriginal.apply(this, [].slice.call(arguments));
@@ -40,18 +45,33 @@ const sendOriginal = window.XMLHttpRequest.prototype.send;
 window.XMLHttpRequest.prototype.send = function (data) {
 	// @ts-ignore
 	const url = this.url;
-	const isRequestFromCC = url.includes(URL_TARGET);
+	// @ts-ignore
+	const method = this.method;
+	// @ts-ignore
+	const httpInterceptorCacheRegex = window.httpInterceptorCacheRegex;
+	const isRegexValidToApplyCache = false; // new RegExp(httpInterceptorCacheRegex, 'g').test(url);
+	const isMethodByPass = HTTP_METHODS_BY_PASS.includes(method);
+
+	// console.log({
+	// 	isRegexValidToApplyCache,
+	// 	httpInterceptorCacheRegex,
+	// });
 
 	const stateChangeOriginal = this.onreadystatechange;
-	this.onreadystatechange = async function() {
-		const self = isRequestFromCC ? onReadyStateChange(this, url) : this;
+	this.onreadystatechange = async function () {
+		const self =
+			isRegexValidToApplyCache && !isMethodByPass
+				? onReadyStateChange(this, url)
+				: this;
 		// @ts-ignore
 		await stateChangeOriginal?.apply(self, arguments);
 	};
 
 	const onLoadOriginal = this.onload;
 	this.onload = async (e) => {
-		isRequestFromCC && await onLoad(url, this.response);
+		isRegexValidToApplyCache &&
+			!isMethodByPass &&
+			(await onLoad(url, this.response));
 		onLoadOriginal?.apply(this, [e]);
 	};
 
