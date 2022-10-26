@@ -1,4 +1,5 @@
 import {
+	EXTENSION_NAME,
 	EXTENSION_REGEX_KEY,
 	EXTENSION_STATUS_KEY,
 	MESSAGE_GET_STATE_KEY,
@@ -24,7 +25,6 @@ let cacheData = {} as ExtensionCache;
 	initializeBroadcastMessageCacheResponse({
 		channel: `${MESSAGE_UPDATE_STATE_KEY}-${EXTENSION_STATUS_KEY}`,
 		callback: function (e: MessageEvent) {
-			console.log({ e });
 			cacheData[EXTENSION_STATUS_KEY] = e.data.value;
 		},
 	});
@@ -70,11 +70,8 @@ const sendOriginal = window.XMLHttpRequest.prototype.send;
 window.XMLHttpRequest.prototype.send = async function (data) {
 	// @ts-ignore
 	const method = this.method;
-	const isMethodByPass = !cacheData[method as keyof typeof cacheData];
-
-	console.log({
-		cacheData,
-	});
+	const methodKey = `${EXTENSION_NAME}-${method}`;
+	const isMethodByPass = !cacheData[methodKey as keyof typeof cacheData];
 
 	// @ts-ignore
 	const url = this.url;
@@ -82,6 +79,12 @@ window.XMLHttpRequest.prototype.send = async function (data) {
 	const isRegexValidToApplyCache = httpInterceptorCacheRegex
 		? new RegExp(httpInterceptorCacheRegex, 'g').test(url)
 		: true;
+
+	console.log({
+		isRegexValidToApplyCache,
+		httpInterceptorCacheRegex,
+		url,
+	});
 
 	const stateChangeOriginal = this.onreadystatechange;
 	this.onreadystatechange = async function () {

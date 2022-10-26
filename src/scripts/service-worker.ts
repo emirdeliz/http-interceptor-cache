@@ -5,7 +5,6 @@ import {
 	MESSAGE_GET_STATE_KEY,
 	MESSAGE_UPDATE_STATE_KEY,
 } from './constants';
-import { getCurrentTab } from './utils';
 
 function processMessage(request: any, sendResponse: Function) {
 	const { channel, key, value } = request;

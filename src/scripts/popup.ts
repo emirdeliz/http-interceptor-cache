@@ -1,4 +1,5 @@
 import {
+	EXTENSION_NAME,
 	EXTENSION_REGEX_KEY,
 	EXTENSION_STATUS_KEY,
 	MESSAGE_UPDATE_STATE_KEY,
@@ -8,7 +9,6 @@ import {
 	initializeBroadcastChannelCache,
 	initializeBroadcastMessageCacheResponse,
 	putInCache,
-	sendBroadcastMessageCache,
 } from './utils';
 
 let regexValue = '';
@@ -18,45 +18,48 @@ window.addEventListener(
 	'load',
 	function () {
 		initializeBroadcastChannelCache();
-		// initializeHttpInputRegex();
-		// initializeHttpCheckbox();
+		initializeHttpInputRegex();
+		initializeHttpCheckbox();
 		initializeHttpStatus();
 	},
 	false
 );
 
-// const onloadOriginal = window.onload;
-// window.onload = function (e) {
-// 	initializeBroadcastChannelCache();
-// 	// initializeHttpInputRegex();
-// 	// initializeHttpCheckbox();
-// 	initializeHttpStatus();
-// };
+async function showButtonStatus(
+	target: HTMLButtonElement, promise: Promise<void>
+) {
+	const titleOriginal = target.innerHTML;
+	target.innerHTML = '...';
+	await promise;
+
+	setTimeout(function () {
+		target.innerHTML = 'Done!';
+		setTimeout(function () {
+			target.innerHTML = titleOriginal;
+		}, 500);
+	}, 300);
+}
 
 async function initializeHttpStatus() {
 	enabled = (await getFromCache<boolean>(EXTENSION_STATUS_KEY)) || false;
 	updateEditableContainerByStatus();
 
-	console.log({
-		enabled,
-	});
-
 	initializeBroadcastMessageCacheResponse({
 		channel: `${MESSAGE_UPDATE_STATE_KEY}-${EXTENSION_STATUS_KEY}`,
 		callback: function (e: MessageEvent) {
 			enabled = e.data.value;
-				console.log({
-					enabled,
-				});
 			updateEditableContainerByStatus();
 		},
 	});
 
-	const btnSaveStatus = document.getElementById('btn-save-status');
+	const btnSaveStatus = document.getElementById('btn-save-status') as HTMLButtonElement;
 	btnSaveStatus?.addEventListener(
 		'click',
 		function () {
-			putInCache(EXTENSION_STATUS_KEY, !enabled);
+			showButtonStatus(
+				btnSaveStatus,
+				putInCache(EXTENSION_STATUS_KEY, !enabled)
+			);
 		},
 		false
 	);
@@ -88,11 +91,16 @@ async function initializeHttpInputRegex() {
 			regexValue = (e.target as HTMLInputElement).value || '';
 		});
 
-	const btnSaveRegex = document.getElementById('btn-save-regex');
+	const btnSaveRegex = document.getElementById(
+		'btn-save-regex'
+	) as HTMLButtonElement;
 	btnSaveRegex?.addEventListener(
 		'click',
 		function () {
-			putInCache(EXTENSION_REGEX_KEY, regexValue);
+			showButtonStatus(
+				btnSaveRegex,
+				putInCache(EXTENSION_REGEX_KEY, regexValue)
+			);
 		},
 		false
 	);
@@ -119,7 +127,7 @@ function getCheckboxKey(cbx: HTMLInputElement) {
 	const checkboxLabel =
 		cbx.parentNode?.querySelector<HTMLLabelElement>('label');
 	const checkboxKey = checkboxLabel?.innerHTML;
-	return checkboxKey;
+	return `${EXTENSION_NAME}-${checkboxKey}`;
 }
 
 function checkboxAddEventListener(cbx: HTMLInputElement) {
