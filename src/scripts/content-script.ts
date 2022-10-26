@@ -72,6 +72,7 @@ window.XMLHttpRequest.prototype.send = async function (data) {
 	const method = this.method;
 	const methodKey = `${EXTENSION_NAME}-${method}`;
 	const isMethodByPass = !cacheData[methodKey as keyof typeof cacheData];
+	const isExtensionEnabled = cacheData[EXTENSION_STATUS_KEY]; 
 
 	// @ts-ignore
 	const url = this.url;
@@ -83,7 +84,7 @@ window.XMLHttpRequest.prototype.send = async function (data) {
 	const stateChangeOriginal = this.onreadystatechange;
 	this.onreadystatechange = async function () {
 		let self = this;
-		if (isRegexValidToApplyCache && !isMethodByPass) {
+		if (isExtensionEnabled && isRegexValidToApplyCache && !isMethodByPass) {
 			const result = await onReadyStateChange(this, url);
 			self = result.self;
 			// @ts-ignore
@@ -99,7 +100,7 @@ window.XMLHttpRequest.prototype.send = async function (data) {
 			!isMethodByPass &&
 			// @ts-ignore
 			!this.hasInCache &&
-			(await onLoad(url, this.response));
+			isExtensionEnabled && (await onLoad(url, this.response));
 		onLoadOriginal?.apply(this, [e]);
 	};
 
