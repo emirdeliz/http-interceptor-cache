@@ -1,16 +1,14 @@
-import { getExtensionState, injectScript } from './utils';
+import { EXTENSION_NAME } from './constants';
+import {
+	initializeBroadcastChannelCache,
+	injectScript,
+} from './utils';
 
-getExtensionState('regex', function (value: string) {
-	// @ts-ignore
-	window.httpInterceptorCacheRegex = value;
-});
+const scriptId = `${EXTENSION_NAME}-content`;
 
-getExtensionState('enabled', function (enabled: boolean) {
-	// console.log({ enabled });
-});
-
-const appendScriptHttpInterceptorCacheToHost = async () => {
+async function appendScriptHttpInterceptorCacheToHost() {
+	initializeBroadcastChannelCache();
 	await injectScript({ path: 'dist/scripts/constants.js' });
-	await injectScript({ path: 'dist/scripts/content-script.js' });
-};
+	await injectScript({ path: 'dist/scripts/content-script.js', id: scriptId });
+}
 appendScriptHttpInterceptorCacheToHost();

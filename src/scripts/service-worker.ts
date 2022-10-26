@@ -1,50 +1,76 @@
 import {
-	APP_NAME,
+	EXTENSION_STATUS_KEY,
 	IMAGE_DISABLED_PATH,
 	IMAGE_ENABLED_PATH,
-	MESSAGE_CHECK_IF_EXTENSION_IS_ENABLED_KEY,
 	MESSAGE_GET_STATE_KEY,
 	MESSAGE_UPDATE_STATE_KEY,
 } from './constants';
+import { getCurrentTab } from './utils';
 
-chrome.runtime.onMessage.addListener(async function(request, _sender, sendResponse) {
-	const { messageKey, key, value } = request;
-	switch (messageKey) {
-		case MESSAGE_GET_STATE_KEY:
-			sendResponse(await getCacheValue(key));
-		case MESSAGE_UPDATE_STATE_KEY:
-			sendResponse(await setCacheValue(key, value));
-		case MESSAGE_CHECK_IF_EXTENSION_IS_ENABLED_KEY: {
-			await updateStatus(value);
-			sendResponse(await setCacheValue('enabled', value));
+function processMessage(request: any, sendResponse: Function) {
+	const { channel, key, value } = request;
+	try {
+		switch (channel) {
+			case MESSAGE_GET_STATE_KEY:
+				getCacheValue({ key, channel, callback: sendResponse });
+				break;
+			case MESSAGE_UPDATE_STATE_KEY: {
+				setCacheValue({ key, channel, value, callback: sendResponse });
+				break;
+			}
 		}
-	}
-	return true;
-});
-
-async function getCacheValue(key: string) {
-	const keyWithAppName = `${APP_NAME}-${key}`;
-	const value = await chrome.storage.local.get(keyWithAppName);
-	
-	if (chrome.runtime.lastError) {
-		console.error(
-			`Error setting ${key} to ${value}: ${chrome.runtime.lastError.message}`
-		);
-	}
-	return value[keyWithAppName];
-}
-
-async function setCacheValue(key: string, value: string|boolean) {
-	await chrome.storage.local.set({ [`${APP_NAME}-${key}`]: value })
-	if (chrome.runtime.lastError) {
-		console.error(
-			`Error setting ${key} to ${value}: ${chrome.runtime.lastError.message}`
-		);
+	} catch (e) {
+		console.warn({ e });
 	}
 	return true;
 }
 
-async function updateStatus(enabled: boolean) {
+function getCacheValue({
+	key,
+	channel,
+	callback,
+}: {
+	key?: string;
+	channel?: string;
+	callback?: Function;
+}) {
+	chrome.storage.local.get(key || null, function (result) {
+		callback && callback({ ...result, channel });
+	});
+
+	if (chrome.runtime.lastError) {
+		console.warn(
+			`Error setting ${key} to ${key}: ${chrome.runtime.lastError.message}`
+		);
+	}
+	return true;
+}
+
+function setCacheValue({
+	key,
+	value,
+	channel,
+	callback,
+}: {
+	key: string,
+	channel?: string,
+	value: string | boolean | Response
+	callback?: Function
+}) {
+	chrome.storage.local.set({ [key]: value },
+		function () {
+			callback && callback({ value, channel });
+		}
+	);
+	if (chrome.runtime.lastError) {
+		console.warn(
+			`Error setting ${key} to ${value}: ${chrome.runtime.lastError.message}`
+		);
+	}
+	return true;
+}
+
+function updateToolbarIconByStatus({ enabled}: { enabled: boolean }) {
 	if (enabled) {
 		chrome.action.setIcon({ path: IMAGE_ENABLED_PATH });
 	} else {
@@ -53,7 +79,24 @@ async function updateStatus(enabled: boolean) {
 	return true;
 }
 
-// chrome.tabs.onActivated.addListener(async function (_activeInfo) {
-// 	const enabled = await getCacheValue(MESSAGE_CHECK_IF_EXTENSION_IS_ENABLED_KEY);
-// 	updateStatus(enabled);
-// });
+chrome.tabs.onActivated.addListener(function (_activeInfo) {
+	getCacheValue({
+		key: EXTENSION_STATUS_KEY,
+		callback: function(enabled: boolean) {
+			updateToolbarIconByStatus({ enabled });
+		},
+	});
+});
+
+chrome.runtime.onMessage.addListener(function (request, _sender, sendResponse) {
+	return processMessage(request, sendResponse);
+});
+
+chrome.storage.onChanged.addListener(function (changes, namespace) {
+	for (let [key, { newValue }] of Object.entries(changes)) {
+		const isStatusChange = EXTENSION_STATUS_KEY === key;
+		if (isStatusChange) {
+			updateToolbarIconByStatus({ enabled: newValue });
+		}
+	}
+});

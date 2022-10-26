@@ -1,66 +1,84 @@
 import {
-	MESSAGE_CHECK_IF_EXTENSION_IS_ENABLED_KEY,
-	MESSAGE_UPDATE_EXTENSION_IS_ENABLED_KEY,
+	EXTENSION_REGEX_KEY,
+	EXTENSION_STATUS_KEY,
+	MESSAGE_UPDATE_STATE_KEY,
 } from './constants';
-import { updateExtensionState } from './utils';
+import {
+	getFromCache,
+	initializeBroadcastChannelCache,
+	initializeBroadcastMessageCacheResponse,
+	putInCache,
+	sendBroadcastMessageCache,
+} from './utils';
 
 let regexValue = '';
 let enabled = false;
 
-// document.addEventListener(
-// 	'DOMContentLoaded',
-// 	() => {
-// 		initializeHttpInputRegex();
-// 		initializeHttpCheckbox();
-// 		initializeHttpStatus();
-// 	},
-// 	false
-// );
-
-window.onload = function () {
-	setTimeout(() => {
-		initializeHttpInputRegex();
-		initializeHttpCheckbox();
+window.addEventListener(
+	'load',
+	function () {
+		initializeBroadcastChannelCache();
+		// initializeHttpInputRegex();
+		// initializeHttpCheckbox();
 		initializeHttpStatus();
-	}, 2000);
-};
+	},
+	false
+);
 
-function initializeHttpStatus() {
+// const onloadOriginal = window.onload;
+// window.onload = function (e) {
+// 	initializeBroadcastChannelCache();
+// 	// initializeHttpInputRegex();
+// 	// initializeHttpCheckbox();
+// 	initializeHttpStatus();
+// };
+
+async function initializeHttpStatus() {
+	enabled = (await getFromCache<boolean>(EXTENSION_STATUS_KEY)) || false;
 	updateEditableContainerByStatus();
+
+	console.log({
+		enabled,
+	});
+
+	initializeBroadcastMessageCacheResponse({
+		channel: `${MESSAGE_UPDATE_STATE_KEY}-${EXTENSION_STATUS_KEY}`,
+		callback: function (e: MessageEvent) {
+			enabled = e.data.value;
+				console.log({
+					enabled,
+				});
+			updateEditableContainerByStatus();
+		},
+	});
 
 	const btnSaveStatus = document.getElementById('btn-save-status');
 	btnSaveStatus?.addEventListener(
 		'click',
 		function () {
-			const messageKey = MESSAGE_UPDATE_EXTENSION_IS_ENABLED_KEY;
-			chrome.runtime.sendMessage({ messageKey, value: enabled }, function () {
-				updateEditableContainerByStatus();
-			});
+			putInCache(EXTENSION_STATUS_KEY, !enabled);
 		},
 		false
 	);
 }
 
 function updateEditableContainerByStatus() {
-	const messageKey = MESSAGE_CHECK_IF_EXTENSION_IS_ENABLED_KEY;
-	chrome.runtime.sendMessage({ messageKey, value: enabled }, function (result) {
-		enabled = !result;
-		const containers = document.querySelectorAll<HTMLDivElement>('.grid-editable');
-		containers.forEach(function (container) {
-			container.style.opacity = enabled ? '1' : '0.3';
-			container.style.pointerEvents = enabled ? 'auto' : 'none';
-		});
+	const containers =
+		document.querySelectorAll<HTMLDivElement>('.grid-editable');
+	containers.forEach(function (container) {
+		container.style.opacity = enabled ? '1' : '0.3';
+		container.style.pointerEvents = enabled ? 'auto' : 'none';
 	});
 }
 
-function initializeHttpInputRegex() {
+async function initializeHttpInputRegex() {
 	const inputHttp = document.querySelector<HTMLInputElement>('[type=text]');
-	getExtensionState('regex', function (value: string) {
-		if (inputHttp) {
-			inputHttp.value = value;
-			regexValue = value;
-		}
-	});
+	const regex = (await getFromCache<string>(EXTENSION_REGEX_KEY)) || '';
+
+	if (inputHttp) {
+		inputHttp.value = regex;
+		regexValue = regex;
+	}
 
 	inputHttp &&
 		inputHttp.addEventListener('change', function (e) {
@@ -74,7 +92,7 @@ function initializeHttpInputRegex() {
 	btnSaveRegex?.addEventListener(
 		'click',
 		function () {
-			updateExtensionState('regex', regexValue, function () {});
+			putInCache(EXTENSION_REGEX_KEY, regexValue);
 		},
 		false
 	);
@@ -90,12 +108,11 @@ function initializeHttpCheckbox() {
 	});
 }
 
-function checkboxSetState(cbx: HTMLInputElement) {
+async function checkboxSetState(cbx: HTMLInputElement) {
 	const checkboxKey = getCheckboxKey(cbx);
-	checkboxKey &&
-		getExtensionState(checkboxKey, function (value: boolean) {
-			cbx.checked = value;
-		});
+	if (checkboxKey) {
+		cbx.checked = (await getFromCache<boolean>(checkboxKey)) || false;
+	}
 }
 
 function getCheckboxKey(cbx: HTMLInputElement) {
@@ -111,6 +128,8 @@ function checkboxAddEventListener(cbx: HTMLInputElement) {
 			return;
 		}
 		const checkboxKey = getCheckboxKey(cbx);
-		checkboxKey && updateExtensionState(checkboxKey, cbx.checked, function () {});
+		if (checkboxKey) {
+			putInCache(checkboxKey, cbx.checked);
+		}
 	});
 }

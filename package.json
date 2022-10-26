@@ -10,6 +10,7 @@
 		"src/scripts/index.ts",
 		"src/scripts/service-worker.ts",
 		"src/scripts/content-script.ts",
+		"src/scripts/utils.ts",
 		"src/scripts/constants.ts",
 		"src/scripts/popup.ts",
 		"src/css/popup.css"

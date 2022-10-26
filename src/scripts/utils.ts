@@ -1,30 +1,108 @@
-import { APP_NAME, MESSAGE_GET_STATE_KEY, MESSAGE_UPDATE_STATE_KEY } from './constants';
+import {
+	MESSAGE_GET_STATE_KEY, 
+	MESSAGE_UPDATE_STATE_KEY,
+} from './constants';
 
-let cache: Cache;
-async function getCacheInstance() {
-	if (!cache) {
-		cache = await caches.open(APP_NAME);
-	}
-	return cache;
+export function initializeBroadcastChannelCache() {
+	const channelGetState = initializeBroadcastMessageCacheResponse({
+		channel: MESSAGE_GET_STATE_KEY,
+		callback: function (e: MessageEvent) {
+			if (chrome.runtime.id == undefined) {
+				return;
+			}
+			chrome.runtime.sendMessage(
+				{
+					...e.data,
+					channel: MESSAGE_GET_STATE_KEY,
+				},
+				function (response) {
+					sendBroadcastMessageCache({
+						channel: `${MESSAGE_GET_STATE_KEY}-${e.data.key || 'ALL'}`,
+						message: response
+				});
+				}
+			)
+		}
+	});
+
+	const channelUpdateState = initializeBroadcastMessageCacheResponse({
+		channel: MESSAGE_UPDATE_STATE_KEY,
+		callback: function (e: MessageEvent) {
+			if (chrome.runtime.id == undefined) {
+				return;
+			}
+			chrome.runtime.sendMessage(
+				{
+					...e.data,
+					channel: MESSAGE_UPDATE_STATE_KEY,
+				},
+				function (response) {
+					sendBroadcastMessageCache({
+						channel: `${MESSAGE_UPDATE_STATE_KEY}-${e.data.key || 'ALL'}`,
+						message: response
+					});
+				}
+			);
+		}
+	});
+
+	window.addEventListener('beforeunload', function() {
+		channelGetState.close();
+		channelUpdateState.close();
+	});
 }
 
-export function updateExtensionState(
-	key: string,
-	value: string | boolean,
+export function sendBroadcastMessageCache({ channel, message, callback }: {
+	channel: string | BroadcastChannel,
+	message: any,
 	callback?: Function
-) {
-	const messageKey = MESSAGE_UPDATE_STATE_KEY;
-	chrome.runtime.sendMessage({ messageKey, key, value }, function () {
-		callback && callback();
+}) {
+	const isChannelBroadcast = channel instanceof BroadcastChannel;
+	const bc = isChannelBroadcast ? channel : new BroadcastChannel(channel);
+
+	bc.postMessage({
+		...message,
+		channel: isChannelBroadcast ? channel.name : channel,
 	});
+
+	if (!isChannelBroadcast) {
+		bc.close();
+	}
+	callback && callback();
 }
 
-export function getExtensionState(key: string, callback?: Function) {
-	const messageKey = MESSAGE_GET_STATE_KEY;
-	chrome.runtime.sendMessage({ messageKey, key }, function (response) {
-		console.log({ key, response });
-		callback && callback(response ? response[key] : '');
+export function initializeBroadcastMessageCacheResponse({
+	channel,
+	callback,
+}: {
+	channel: string;
+	callback?: Function;
+}) {
+	const bc = new BroadcastChannel(channel);
+	bc.onmessage = function (e: MessageEvent) {
+		return callback && callback(e);
+	};
+	return bc;
+}
+
+export function sendBroadcastMessageCacheAndWaitResponse({
+	channel,
+	message,
+	callback
+}: {
+	channel: string,
+	message?: any,
+	callback?: Function
+}) {
+	const { key } = message || {};
+	const bc = initializeBroadcastMessageCacheResponse({
+		channel: `${channel}-${key || 'ALL'}`,
+		callback: function (e: MessageEvent) {
+			callback && callback(e, message);
+			bc.close();
+		},
 	});
+	sendBroadcastMessageCache({ channel, message });
 }
 
 export function getCurrentTab() {
@@ -35,46 +113,42 @@ export function getCurrentTab() {
 	});
 }
 
-export async function getFromCache(key: string) {
-	try {
-		const cacheInstance = await getCacheInstance();
-		const result = await cacheInstance.match(key);
-		return result;
-	} catch (e) {
-		console.warn('Error - GET cache: ', e);
-	}
+export async function getFromCache<T>(key: string) {
+	return new Promise<T>(function (resolve, reject) {
+		try {
+			sendBroadcastMessageCacheAndWaitResponse({
+				channel: MESSAGE_GET_STATE_KEY,
+				message: { key },
+				callback: function (e: MessageEvent) {
+					resolve(e.data[key]);
+				}
+			});
+		} catch (e) {
+			console.warn('Error - GET cache: ', e);
+			reject('Error - GET cache');
+		}
+	});
 }
 
-export async function putInCache(request: RequestInfo | URL, response: Response) {
-	const cacheInstance = await getCacheInstance();
-	try {
-		await cacheInstance.put(request, response);
-	} catch(e) {
-		console.warn('Error - SET cache: ', e);
-	}
-}
-
-export async function makeFetch(self: XMLHttpRequest,
-	args?: IArguments) {
-	const url = args ? args[1] : '';
-	const isRequestFromCC = url.includes(
-		'b3h854n10k.execute-api.us-east-1.amazonaws.com'
-	);
-
-	const responseFromCache = isRequestFromCC ? await getFromCache(url) : null;
-	if (responseFromCache) {
-		console.table(`Endpoint ${url} found in cache...`);
-		return responseFromCache;
-	}
-
-	isRequestFromCC &&
-		console.table(`Endpoint ${url} is not found in the cache...`);
-	// @ts-ignore
-	const responseFromNetwork = await self.xhrOpenOriginal.apply(self, args);
-	if (isRequestFromCC) {
-		await putInCache(url, responseFromNetwork.clone());
-	}
-	return responseFromNetwork;
+export async function putInCache(
+	key: RequestInfo | URL | string,
+	value: Response | string | boolean
+) {
+	return new Promise<void>(function (resolve, reject) {
+		try {
+			sendBroadcastMessageCache({
+				channel: MESSAGE_UPDATE_STATE_KEY,
+				message: {
+					key,
+					value,
+				},
+				callback: resolve
+		});
+		} catch (e) {
+			console.warn('Error - SET cache: ', e);
+			reject('Error - SET cache');
+		}
+	});
 }
 
 export function injectScript({ path, type, id }: { path?: string; type?: string; id?: string; }) {
