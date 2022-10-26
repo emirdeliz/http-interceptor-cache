@@ -59,11 +59,11 @@ export function sendBroadcastMessageCache({ channel, message, callback }: {
 }) {
 	const isChannelBroadcast = channel instanceof BroadcastChannel;
 	const bc = isChannelBroadcast ? channel : new BroadcastChannel(channel);
-
-	bc.postMessage({
-		...message,
-		channel: isChannelBroadcast ? channel.name : channel,
-	});
+	const channelName = isChannelBroadcast ? channel.name : channel;
+	
+	const messageData = JSON.parse(JSON.stringify(message || { channel: '' }));
+	messageData.channel = channelName;
+	bc.postMessage(messageData);
 
 	if (!isChannelBroadcast) {
 		bc.close();

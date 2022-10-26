@@ -46,7 +46,7 @@ window.XMLHttpRequest.prototype.open = function () {
 
 async function onReadyStateChange(self: XMLHttpRequest, url: string) {
 	let hasInCache = false;
-	const responseFromCache = getFromCache(url);
+	const responseFromCache = await getFromCache(url);
 	if (responseFromCache) {
 		console.table(`Endpoint ${url} found in cache...`);
 		self.response.value = responseFromCache;
