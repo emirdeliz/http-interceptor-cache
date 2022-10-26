@@ -80,12 +80,6 @@ window.XMLHttpRequest.prototype.send = async function (data) {
 		? new RegExp(httpInterceptorCacheRegex, 'g').test(url)
 		: true;
 
-	console.log({
-		isRegexValidToApplyCache,
-		httpInterceptorCacheRegex,
-		url,
-	});
-
 	const stateChangeOriginal = this.onreadystatechange;
 	this.onreadystatechange = async function () {
 		let self = this;
