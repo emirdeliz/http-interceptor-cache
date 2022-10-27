@@ -46,10 +46,6 @@ async function processRequest(url: string, self: XMLHttpRequest) {
 		// @ts-ignore
 		self.onreadystatechange && self.onreadystatechange();
 	}
-	console.log({
-		url,
-		responseFromCache,
-	});
 	return !!responseFromCache;
 }
 
@@ -57,12 +53,6 @@ async function persistCache(url: string, response: any) {
 	console.log(`Endpoint ${url} added in cache...`);
 	const responseBlob = new Blob([response]);
 	const responseOptions = { status: 200 };
-
-	console.log({
-		response,
-		url
-	});
-
 	await putInCache(url, new Response(responseBlob, responseOptions));
 }
 
@@ -98,8 +88,6 @@ window.XMLHttpRequest.prototype.send = async function (data) {
 
 	if (isUseCache) {
 		const hasInCache = await processRequest(url, this);
-		console.log({ hasInCache });
-
 		if (hasInCache) {
 			this.abort();
 			return;
