@@ -5,6 +5,7 @@ import {
 	MESSAGE_GET_STATE_KEY,
 	MESSAGE_UPDATE_STATE_KEY,
 } from './constants';
+import { ExtensionCache } from './types';
 
 function processMessage(request: any, sendResponse: Function) {
 	const { channel, key, value } = request;
@@ -33,8 +34,8 @@ function getCacheValue({
 	channel?: string;
 	callback?: Function;
 }) {
-	chrome.storage.local.get(key || null, function (result) {
-		callback && callback({ ...result, channel });
+	chrome.storage.local.get(key || null, function (cache) {
+		callback && callback({ ...cache, channel });
 	});
 
 	if (chrome.runtime.lastError) {
@@ -69,20 +70,30 @@ function setCacheValue({
 	return true;
 }
 
-function updateToolbarIconByStatus({ enabled}: { enabled: boolean }) {
-	if (enabled) {
-		chrome.action.setIcon({ path: IMAGE_ENABLED_PATH });
-	} else {
-		chrome.action.setIcon({ path: IMAGE_DISABLED_PATH });
-	}
+function updateToolbarIconByStatus({ enabled}: { enabled?: boolean }) {
+	chrome.action.setIcon({
+		path: enabled ? IMAGE_ENABLED_PATH : IMAGE_DISABLED_PATH,
+	});
+	chrome.action.setBadgeText({
+		text: enabled ? '' : 'Off',
+	});
 	return true;
 }
 
-chrome.tabs.onActivated.addListener(function (_activeInfo) {
+// chrome.tabs.onActivated.addListener(function (_activeInfo) {
+// 	getCacheValue({
+// 		key: EXTENSION_STATUS_KEY,
+// 		callback: function(enabled: boolean) {
+// 			updateToolbarIconByStatus({ enabled });
+// 		},
+// 	});
+// });
+
+chrome.tabs.onUpdated.addListener(() => {
 	getCacheValue({
 		key: EXTENSION_STATUS_KEY,
-		callback: function(enabled: boolean) {
-			updateToolbarIconByStatus({ enabled });
+		callback: function (cache: ExtensionCache) {
+			updateToolbarIconByStatus({ enabled: cache[EXTENSION_STATUS_KEY] });
 		},
 	});
 });

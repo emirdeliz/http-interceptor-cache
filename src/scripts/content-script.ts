@@ -1,5 +1,4 @@
 import {
-	EXTENSION_NAME,
 	EXTENSION_REGEX_KEY,
 	EXTENSION_STATUS_KEY,
 	MESSAGE_GET_STATE_KEY,
@@ -19,7 +18,7 @@ let cacheData = {} as ExtensionCache;
 		channel: MESSAGE_GET_STATE_KEY,
 		callback: function (e: MessageEvent) {
 			cacheData = e.data;
-		}
+		},
 	});
 
 	initializeBroadcastMessageCacheResponse({
@@ -30,83 +29,89 @@ let cacheData = {} as ExtensionCache;
 	});
 })();
 
+async function processRequest(url: string, self: XMLHttpRequest) {
+	const responseFromCache = await getFromCache(url);
+	if (responseFromCache) {
+		console.log(`Endpoint ${url} found in cache...`);
+		Object.defineProperty(self, 'response', {
+			value: responseFromCache,
+			writable: false,
+		});
+		// @ts-ignore
+		self.readyState = XMLHttpRequest.DONE;
+		// @ts-ignore
+		self.status = 200;
+		// @ts-ignore
+		self.onload && self.onload({} as any);
+		// @ts-ignore
+		self.onreadystatechange && self.onreadystatechange();
+	}
+	console.log({
+		url,
+		responseFromCache,
+	});
+	return !!responseFromCache;
+}
+
+async function persistCache(url: string, response: any) {
+	console.log(`Endpoint ${url} added in cache...`);
+	const responseBlob = new Blob([response]);
+	const responseOptions = { status: 200 };
+
+	console.log({
+		response,
+		url
+	});
+
+	await putInCache(url, new Response(responseBlob, responseOptions));
+}
+
 const openOriginal = window.XMLHttpRequest.prototype.open;
 window.XMLHttpRequest.prototype.open = function () {
-	const method = arguments[0];
+	const method = arguments[0] || 'GET';
 	const url = arguments[1];
 	// @ts-ignore
 	this.url = url;
 
 	// @ts-ignore
-	this.method = method;
+	this.method = method.toUpperCase();
 
 	// @ts-ignore
 	openOriginal.apply(this, [].slice.call(arguments));
 };
 
-async function onReadyStateChange(self: XMLHttpRequest, url: string) {
-	let hasInCache = false;
-	const responseFromCache = await getFromCache(url);
-	if (responseFromCache) {
-		console.table(`Endpoint ${url} found in cache...`);
-		self.response.value = responseFromCache;
-		// @ts-ignore
-		self.readyState = XMLHttpRequest.DONE;
-		hasInCache = true;
-	}
-	return { self, hasInCache };
-}
-
-async function onLoad(url: string, responseData: any) {
-	console.table(`Endpoint ${url} added in cache...`);
-	const responseBlob = new Blob([responseData]);
-	const responseOptions = { status: 200 };
-	putInCache(url, new Response(responseBlob, responseOptions));
-}
-
-// const URL_TARGET = 'b3h854n10k.execute-api.us-east-1.amazonaws.com';
-
 const sendOriginal = window.XMLHttpRequest.prototype.send;
 window.XMLHttpRequest.prototype.send = async function (data) {
 	// @ts-ignore
-	const method = this.method;
-	const methodKey = `${EXTENSION_NAME}-${method}`;
-	const isMethodByPass = !cacheData[methodKey as keyof typeof cacheData];
-	const isExtensionEnabled = cacheData[EXTENSION_STATUS_KEY]; 
-
-	// @ts-ignore
 	const url = this.url;
+	// @ts-ignore
+	const method = this.method;
+	const isExtensionEnabled = cacheData[EXTENSION_STATUS_KEY];
+	const isMethodByPass = !cacheData[method as keyof typeof cacheData];
 	const httpInterceptorCacheRegex = cacheData[EXTENSION_REGEX_KEY];
 	const isRegexValidToApplyCache = httpInterceptorCacheRegex
 		? new RegExp(httpInterceptorCacheRegex, 'g').test(url)
 		: true;
 
-	const stateChangeOriginal = this.onreadystatechange;
-	this.onreadystatechange = async function () {
-		let self = this;
-		if (isExtensionEnabled && isRegexValidToApplyCache && !isMethodByPass) {
-			const result = await onReadyStateChange(this, url);
-			self = result.self;
-			// @ts-ignore
-			this.hasInCache = result.hasInCache;
+	const isUseCache =
+		isExtensionEnabled && isRegexValidToApplyCache && !isMethodByPass;
+
+	if (isUseCache) {
+		const hasInCache = await processRequest(url, this);
+		console.log({ hasInCache });
+
+		if (hasInCache) {
+			this.abort();
+			return;
 		}
-		// @ts-ignore
-		await stateChangeOriginal?.apply(self, arguments);
-	};
+	}
 
 	const onLoadOriginal = this.onload;
-	this.onload = async (e) => {
-		isRegexValidToApplyCache &&
-			!isMethodByPass &&
-			// @ts-ignore
-			!this.hasInCache &&
-			isExtensionEnabled && (await onLoad(url, this.response));
-		onLoadOriginal?.apply(this, [e]);
+	this.onload = async function (this: XMLHttpRequest, e: ProgressEvent) {
+		// @ts-ignore
+		isUseCache && await persistCache(this.url, this.response);
+		// @ts-ignore
+		return onLoadOriginal && onLoadOriginal(this, e);
 	};
-
 	sendOriginal.call(this, data);
 };
-
-window.addEventListener('beforeunload', () => {
-	window.XMLHttpRequest.prototype.send = sendOriginal;
-});

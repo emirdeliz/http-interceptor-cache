@@ -131,8 +131,8 @@ export async function getFromCache<T>(key: string) {
 }
 
 export async function putInCache(
-	key: RequestInfo | URL | string,
-	value: Response | string | boolean
+	key: string,
+	value: any
 ) {
 	return new Promise<void>(function (resolve, reject) {
 		try {
