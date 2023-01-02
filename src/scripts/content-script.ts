@@ -3,14 +3,14 @@ import {
 	EXTENSION_STATUS_KEY,
 	MESSAGE_GET_STATE_KEY,
 	MESSAGE_UPDATE_STATE_KEY,
-} from './constants';
+} from '@scripts/constants';
 import { ExtensionCache } from './types';
 import {
 	getFromCache,
 	putInCache,
 	initializeBroadcastMessageCacheResponse,
 	sendBroadcastMessageCacheAndWaitResponse,
-} from './utils';
+} from '@scripts/utils';
 
 let cacheData = {} as ExtensionCache;
 (function () {
@@ -97,7 +97,7 @@ window.XMLHttpRequest.prototype.send = async function (data) {
 	const onLoadOriginal = this.onload;
 	this.onload = async function (this: XMLHttpRequest, e: ProgressEvent) {
 		// @ts-ignore
-		isUseCache && await persistCache(this.url, this.response);
+		isUseCache && (await persistCache(this.url, this.response));
 		// @ts-ignore
 		return onLoadOriginal && onLoadOriginal(this, e);
 	};

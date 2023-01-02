@@ -1,8 +1,5 @@
-import { EXTENSION_NAME } from './constants';
-import {
-	initializeBroadcastChannelCache,
-	injectScript,
-} from './utils';
+import { EXTENSION_NAME } from '@scripts/constants';
+import { initializeBroadcastChannelCache, injectScript } from '@scripts/utils';
 
 const scriptId = `${EXTENSION_NAME}-content`;
 

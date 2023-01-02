@@ -1,11 +1,11 @@
 import {
 	EXTENSION_STATUS_KEY,
-	IMAGE_DISABLED_PATH,
-	IMAGE_ENABLED_PATH,
+	EXTENSION_IMAGE_DISABLED_PATH,
+	EXTENSION_IMAGE_ENABLED_PATH,
 	MESSAGE_GET_STATE_KEY,
 	MESSAGE_UPDATE_STATE_KEY,
-} from './constants';
-import { ExtensionCache } from './types';
+} from '@scripts/constants';
+import { ExtensionCache } from '@scripts/types';
 
 function processMessage(request: any, sendResponse: Function) {
 	const { channel, key, value } = request;
@@ -52,16 +52,14 @@ function setCacheValue({
 	channel,
 	callback,
 }: {
-	key: string,
-	channel?: string,
-	value: string | boolean | Response
-	callback?: Function
+	key: string;
+	channel?: string;
+	value: string | boolean | Response;
+	callback?: Function;
 }) {
-	chrome.storage.local.set({ [key]: value },
-		function () {
-			callback && callback({ value, channel });
-		}
-	);
+	chrome.storage.local.set({ [key]: value }, function () {
+		callback && callback({ value, channel });
+	});
 	if (chrome.runtime.lastError) {
 		console.warn(
 			`Error setting ${key} to ${value}: ${chrome.runtime.lastError.message}`
@@ -70,24 +68,17 @@ function setCacheValue({
 	return true;
 }
 
-function updateToolbarIconByStatus({ enabled}: { enabled?: boolean }) {
+function updateToolbarIconByStatus({ enabled }: { enabled?: boolean }) {
 	chrome.action.setIcon({
-		path: enabled ? IMAGE_ENABLED_PATH : IMAGE_DISABLED_PATH,
+		path: enabled
+			? EXTENSION_IMAGE_ENABLED_PATH
+			: EXTENSION_IMAGE_DISABLED_PATH,
 	});
 	chrome.action.setBadgeText({
 		text: enabled ? '' : 'Off',
 	});
 	return true;
 }
-
-// chrome.tabs.onActivated.addListener(function (_activeInfo) {
-// 	getCacheValue({
-// 		key: EXTENSION_STATUS_KEY,
-// 		callback: function(enabled: boolean) {
-// 			updateToolbarIconByStatus({ enabled });
-// 		},
-// 	});
-// });
 
 chrome.tabs.onUpdated.addListener(() => {
 	getCacheValue({

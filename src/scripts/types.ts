@@ -1,4 +1,4 @@
-import { EXTENSION_REGEX_KEY, EXTENSION_STATUS_KEY } from "./constants";
+import { EXTENSION_REGEX_KEY, EXTENSION_STATUS_KEY } from '@scripts/constants';
 
 export interface ExtensionCache {
 	[EXTENSION_REGEX_KEY]?: string;

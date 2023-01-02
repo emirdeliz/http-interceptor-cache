@@ -1,7 +1,7 @@
 import {
-	MESSAGE_GET_STATE_KEY, 
+	MESSAGE_GET_STATE_KEY,
 	MESSAGE_UPDATE_STATE_KEY,
-} from './constants';
+} from '@scripts/constants';
 
 export function initializeBroadcastChannelCache() {
 	const channelGetState = initializeBroadcastMessageCacheResponse({
@@ -18,11 +18,11 @@ export function initializeBroadcastChannelCache() {
 				function (response) {
 					sendBroadcastMessageCache({
 						channel: `${MESSAGE_GET_STATE_KEY}-${e.data.key || 'ALL'}`,
-						message: response
-				});
+						message: response,
+					});
 				}
-			)
-		}
+			);
+		},
 	});
 
 	const channelUpdateState = initializeBroadcastMessageCacheResponse({
@@ -39,28 +39,32 @@ export function initializeBroadcastChannelCache() {
 				function (response) {
 					sendBroadcastMessageCache({
 						channel: `${MESSAGE_UPDATE_STATE_KEY}-${e.data.key || 'ALL'}`,
-						message: response
+						message: response,
 					});
 				}
 			);
-		}
+		},
 	});
 
-	window.addEventListener('beforeunload', function() {
+	window.addEventListener('beforeunload', function () {
 		channelGetState.close();
 		channelUpdateState.close();
 	});
 }
 
-export function sendBroadcastMessageCache({ channel, message, callback }: {
-	channel: string | BroadcastChannel,
-	message: any,
-	callback?: Function
+export function sendBroadcastMessageCache({
+	channel,
+	message,
+	callback,
+}: {
+	channel: string | BroadcastChannel;
+	message: any;
+	callback?: Function;
 }) {
 	const isChannelBroadcast = channel instanceof BroadcastChannel;
 	const bc = isChannelBroadcast ? channel : new BroadcastChannel(channel);
 	const channelName = isChannelBroadcast ? channel.name : channel;
-	
+
 	const messageData = JSON.parse(JSON.stringify(message || { channel: '' }));
 	messageData.channel = channelName;
 	bc.postMessage(messageData);
@@ -88,11 +92,11 @@ export function initializeBroadcastMessageCacheResponse({
 export function sendBroadcastMessageCacheAndWaitResponse({
 	channel,
 	message,
-	callback
+	callback,
 }: {
-	channel: string,
-	message?: any,
-	callback?: Function
+	channel: string;
+	message?: any;
+	callback?: Function;
 }) {
 	const { key } = message || {};
 	const bc = initializeBroadcastMessageCacheResponse({
@@ -121,7 +125,7 @@ export async function getFromCache<T>(key: string) {
 				message: { key },
 				callback: function (e: MessageEvent) {
 					resolve(e.data[key]);
-				}
+				},
 			});
 		} catch (e) {
 			console.warn('Error - GET cache: ', e);
@@ -130,10 +134,7 @@ export async function getFromCache<T>(key: string) {
 	});
 }
 
-export async function putInCache(
-	key: string,
-	value: any
-) {
+export async function putInCache(key: string, value: any) {
 	return new Promise<void>(function (resolve, reject) {
 		try {
 			sendBroadcastMessageCache({
@@ -142,8 +143,8 @@ export async function putInCache(
 					key,
 					value,
 				},
-				callback: resolve
-		});
+				callback: resolve,
+			});
 		} catch (e) {
 			console.warn('Error - SET cache: ', e);
 			reject('Error - SET cache');
@@ -151,7 +152,15 @@ export async function putInCache(
 	});
 }
 
-export function injectScript({ path, type, id }: { path?: string; type?: string; id?: string; }) {
+export function injectScript({
+	path,
+	type,
+	id,
+}: {
+	path?: string;
+	type?: string;
+	id?: string;
+}) {
 	return new Promise<void>((resolve) => {
 		const script = document.createElement('script');
 		if (id) {
@@ -161,7 +170,7 @@ export function injectScript({ path, type, id }: { path?: string; type?: string;
 			script.src = chrome.runtime.getURL(path);
 		}
 
-		script.type = type || "text/javascript";
+		script.type = type || 'text/javascript';
 		script.onload = () => {
 			resolve();
 			script.remove();
@@ -170,7 +179,7 @@ export function injectScript({ path, type, id }: { path?: string; type?: string;
 	});
 }
 
-export async function injectCss({ path }: { path: string; }) {
+export async function injectCss({ path }: { path: string }) {
 	const style = document.createElement('link');
 	style.id = chrome.runtime.id;
 	style.href = chrome.runtime.getURL(path);

@@ -2,14 +2,16 @@ import {
 	EXTENSION_NAME,
 	EXTENSION_REGEX_KEY,
 	EXTENSION_STATUS_KEY,
+	EXTENSION_STATUS_OPACITY,
+	EXTENSION_STATUS_POINTER_EVENTS,
 	MESSAGE_UPDATE_STATE_KEY,
-} from './constants';
+} from '@scripts/constants';
 import {
 	getFromCache,
 	initializeBroadcastChannelCache,
 	initializeBroadcastMessageCacheResponse,
 	putInCache,
-} from './utils';
+} from '@scripts/utils';
 
 let regexValue = '';
 let enabled = false;
@@ -26,7 +28,8 @@ window.addEventListener(
 );
 
 async function showButtonStatus(
-	target: HTMLButtonElement, promise: Promise<void>
+	target: HTMLButtonElement,
+	promise: Promise<void>
 ) {
 	const titleOriginal = target.innerHTML;
 	target.innerHTML = '...';
@@ -52,7 +55,9 @@ async function initializeHttpStatus() {
 		},
 	});
 
-	const btnSaveStatus = document.getElementById('btn-save-status') as HTMLButtonElement;
+	const btnSaveStatus = document.querySelector(
+		'[test-id=btn-enable-disable-status]'
+	) as HTMLButtonElement;
 	btnSaveStatus?.addEventListener(
 		'click',
 		function () {
@@ -66,11 +71,16 @@ async function initializeHttpStatus() {
 }
 
 function updateEditableContainerByStatus() {
-	const containers =
-		document.querySelectorAll<HTMLDivElement>('.grid-editable');
+	const containers = document.querySelectorAll<HTMLDivElement>(
+		'[role="contentinfo"]'
+	);
 	containers.forEach(function (container) {
-		container.style.opacity = enabled ? '1' : '0.3';
-		container.style.pointerEvents = enabled ? 'auto' : 'none';
+		container.style.opacity = enabled
+			? EXTENSION_STATUS_OPACITY.Enabled
+			: EXTENSION_STATUS_OPACITY.Disabled;
+		container.style.pointerEvents = enabled
+			? EXTENSION_STATUS_POINTER_EVENTS.Enabled
+			: EXTENSION_STATUS_POINTER_EVENTS.Disabled;
 	});
 }
 

@@ -23,14 +23,20 @@
 		"main": false
 	},
 	"devDependencies": {
+		"@playwright/test": "^1.29.1",
 		"@types/chrome": "^0.0.198",
 		"@types/serviceworker": "^0.0.53",
+		"chokidar-cli": "^3.0.0",
 		"parcel": "^2.7.0",
 		"parcel-reporter-static-files-copy": "^1.4.0",
+		"parcel-resolver-ts-base-url": "^1.3.1",
+		"playwright": "^1.29.1",
 		"typescript": "^4.8.4"
 	},
 	"scripts": {
-		"watch": "parcel watch --no-source-maps",
-		"build": "parcel build --no-source-maps"
+		"watch": "reset && parcel watch --no-source-maps",
+		"build": "[ -d dist ] || parcel build --no-source-maps",
+		"test:e2e": "reset && yarn build && playwright test --quiet",
+		"test:e2e:watch": "yarn test:e2e ; cd tests && chokidar './**/*.ts' -c 'echo \"\n{path} was modified\n\" && cd .. && yarn test:e2e \"{path}\"'"
 	}
 }
