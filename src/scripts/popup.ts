@@ -55,14 +55,14 @@ async function initializeHttpStatus() {
 		},
 	});
 
-	const btnSaveStatus = document.querySelector(
+	const btnEnableDisableStatus = document.querySelector(
 		'[test-id=btn-enable-disable-status]'
 	) as HTMLButtonElement;
-	btnSaveStatus?.addEventListener(
+	btnEnableDisableStatus?.addEventListener(
 		'click',
 		function () {
 			showButtonStatus(
-				btnSaveStatus,
+				btnEnableDisableStatus,
 				putInCache(EXTENSION_STATUS_KEY, !enabled)
 			);
 		},
