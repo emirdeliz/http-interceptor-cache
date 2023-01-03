@@ -137,3 +137,22 @@ test('popup page: set the intercept to POST with regex /aquecimentofake/ and the
 	await inputRegex.fill('');
 	expect(await inputRegex.inputValue()).toBe('');
 });
+
+test('popup page: enable all methods and then disable all', async function ({
+	page,
+	extensionId,
+}) {
+	await page.goto(buildExtensionPopupUrl(extensionId));
+	await page.getByTestId('btn-enable-disable-status').click();
+
+	for (const label of ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']) {
+		const cbx = page.getByLabel(label);
+		await expect(cbx).toBeEditable();
+
+		await cbx.click();
+		await expect(cbx).toBeChecked();
+
+		await cbx.click();
+		await expect(cbx).not.toBeChecked();
+	}
+});

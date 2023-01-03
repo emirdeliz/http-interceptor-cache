@@ -18,7 +18,6 @@ export const test = base.extend<{
 		await context.close();
 	},
 	extensionId: async ({ context }, use) => {
-		// for manifest v3:
 		let [background] = context.serviceWorkers();
 		if (!background) {
 			background = await context.waitForEvent('serviceworker');
