@@ -1,6 +1,4 @@
-// import { Page } from '@playwright/test';
 import * as constants from '@scripts/constants';
-import * as utils from '@scripts/utils';
 import { test, expect } from '@tests-setup/fixtures';
 
 function buildExtensionPopupUrl(extensionId: string) {

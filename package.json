@@ -35,7 +35,7 @@
 	},
 	"scripts": {
 		"watch": "reset && parcel watch --no-source-maps",
-		"build": "[ -d dist ] || parcel build --no-source-maps",
+		"build": "[ -d dist ] || parcel build --no-source-maps --no-optimize",
 		"test:e2e": "reset && yarn build && playwright test --quiet",
 		"test:e2e:watch": "yarn test:e2e ; cd tests && chokidar './**/*.ts' -c 'echo \"\n{path} was modified\n\" && cd .. && yarn test:e2e \"{path}\"'"
 	}
