@@ -1,17 +1,18 @@
 {
 	"name": "http-interceptor-cache",
 	"version": "1.0.0",
-	"description": "Chrome extension to intercept HTTP requests and make cache",
-	"main": "dist/scripts/index.js",
+	"description": "Extension to intercept HTTP requests and make cache",
+	"main": "dist/scripts/popup.js",
 	"author": "Emir Marques - <emirdeliz@gmail.com>",
 	"license": "MIT",
 	"type": "module",
+	"repository": "https://github.com/emirdeliz/http-interceptor-cache",
 	"source": [
 		"src/scripts/index.ts",
 		"src/scripts/service-worker.ts",
-		"src/scripts/content-script.ts",
 		"src/scripts/utils.ts",
 		"src/scripts/constants.ts",
+		"src/scripts/content.ts",
 		"src/scripts/popup.ts",
 		"src/css/popup.css"
 	],
@@ -34,9 +35,11 @@
 		"typescript": "^4.8.4"
 	},
 	"scripts": {
-		"watch": "reset && parcel watch --no-source-maps",
+		"kill": "lsof -P | grep 3000 | awk '{print $2}' | xargs kill -9 && reset",
+		"watch": "yarn kill && yarn start:example 3000 & parcel watch",
 		"build": "[ -d dist ] || parcel build --no-source-maps --no-optimize",
 		"test:e2e": "reset && yarn build && playwright test --quiet",
-		"test:e2e:watch": "yarn test:e2e ; cd tests && chokidar './**/*.ts' -c 'echo \"\n{path} was modified\n\" && cd .. && yarn test:e2e \"{path}\"'"
+		"test:e2e:watch": "yarn test:e2e ; cd tests && chokidar './**/*.ts' -c 'echo \"\n{path} was modified\n\" && cd .. && yarn test:e2e \"{path}\"'",
+		"start:example": "yarn --cwd example start 3000"
 	}
 }

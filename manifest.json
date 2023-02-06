@@ -15,30 +15,26 @@
 		"default_title": "Interceptor Settings"
 	},
 	"content_scripts": [
-		{
-			"all_frames": false,
-			"js": [
-				"dist/scripts/index.js"
-			],
-			"matches": [
-				"<all_urls>"
-			],
-			"run_at": "document_start"
-		}
-	],
+    {
+      "matches": ["<all_urls>"],
+      "match_origin_as_fallback": true,
+      "js": ["dist/scripts/index.js"]
+    }
+  ],
 	"permissions": [
+		"tabs",
 		"storage",
 		"scripting",
 		"activeTab"
 	],
 	"host_permissions": [
-		"<all_urls>"
+		"*://*/*"
 	],
 	"web_accessible_resources": [
 		{
 			"resources": [
+				"dist/scripts/content.js",
 				"dist/scripts/constants.js",
-				"dist/scripts/content-script.js",
 				"images/icon-16.png",
 				"images/icon-16-disabled.png"
 			],

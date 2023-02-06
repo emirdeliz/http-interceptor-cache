@@ -1,31 +1,75 @@
-import {
-	EXTENSION_NAME,
-	EXTENSION_REGEX_KEY,
-	EXTENSION_STATUS_KEY,
-	EXTENSION_STATUS_OPACITY,
-	EXTENSION_STATUS_POINTER_EVENTS,
-	MESSAGE_UPDATE_STATE_KEY,
-} from '@scripts/constants';
-import {
-	getFromCache,
-	initializeBroadcastChannelCache,
-	initializeBroadcastMessageCacheResponse,
-	putInCache,
-} from '@scripts/utils';
-
-let regexValue = '';
-let enabled = false;
+import * as constants from '@scripts/constants';
+import * as utils from '@scripts/utils';
 
 window.addEventListener(
 	'load',
 	function () {
-		initializeBroadcastChannelCache();
 		initializeHttpInputRegex();
 		initializeHttpCheckbox();
 		initializeHttpStatus();
 	},
 	false
 );
+
+async function updateConfigOnClient(key: string, value: string|boolean) { 
+	const broadcastUpdate = new BroadcastChannel(constants.MESSAGE_UPDATE_STATE_KEY);
+	broadcastUpdate.postMessage({ [key]: value });
+	broadcastUpdate.close();
+}
+
+async function initializeHttpInputRegex() {
+	const inputRegex = document.querySelector<HTMLInputElement>('[type=text]');
+	if (inputRegex) {
+		inputRegex.value = await utils.getStorageValue<string>('EXTENSION_REGEX_KEY');
+	}
+
+	const btnSaveRegex = document.querySelector<HTMLButtonElement>('#btn-save-regex');
+	btnSaveRegex?.addEventListener(
+		'click',
+		function () {
+			showButtonStatus(
+				btnSaveRegex,
+				utils.setStorageValue('EXTENSION_REGEX_KEY', inputRegex?.value || '')
+			);
+			updateConfigOnClient('EXTENSION_REGEX_KEY', inputRegex?.value || '');
+		},
+		false
+	);
+}
+
+function initializeHttpCheckbox() {
+	const checkboxHttp = document.querySelectorAll<HTMLInputElement>('[type=checkbox]');
+	checkboxHttp.forEach(async function (cbx) {
+		const checkboxKey = utils.getCheckboxKey(cbx);
+		cbx.addEventListener('click', function (e) {
+			utils.setStorageValue(checkboxKey, cbx.checked);
+			updateConfigOnClient(checkboxKey, cbx.checked);
+		});
+		cbx.checked = await utils.getStorageValue<boolean>(checkboxKey);
+	});  
+}
+
+async function initializeHttpStatus() {
+	const btnEnableDisableStatus = document.querySelector(
+		'[test-id=btn-enable-disable-status]'
+	) as HTMLButtonElement;
+	let enabled = await utils.getStorageValue(constants.EXTENSION_STATUS_KEY);
+	updateEditableContainerByStatus(enabled);
+	
+	btnEnableDisableStatus?.addEventListener(
+		'click',
+		function () {
+			enabled = !enabled;
+			showButtonStatus(
+				btnEnableDisableStatus,
+				utils.setStorageValue(constants.EXTENSION_STATUS_KEY, enabled)
+			);
+			updateConfigOnClient(constants.EXTENSION_STATUS_KEY, enabled);
+			updateEditableContainerByStatus(enabled);
+		},
+		false
+	);
+}
 
 async function showButtonStatus(
 	target: HTMLButtonElement,
@@ -43,111 +87,16 @@ async function showButtonStatus(
 	}, 300);
 }
 
-async function initializeHttpStatus() {
-	enabled = (await getFromCache<boolean>(EXTENSION_STATUS_KEY)) || false;
-	updateEditableContainerByStatus();
-
-	initializeBroadcastMessageCacheResponse({
-		channel: `${MESSAGE_UPDATE_STATE_KEY}-${EXTENSION_STATUS_KEY}`,
-		callback: function (e: MessageEvent) {
-			enabled = e.data.value;
-			updateEditableContainerByStatus();
-		},
-	});
-
-	const btnEnableDisableStatus = document.querySelector(
-		'[test-id=btn-enable-disable-status]'
-	) as HTMLButtonElement;
-	btnEnableDisableStatus?.addEventListener(
-		'click',
-		function () {
-			showButtonStatus(
-				btnEnableDisableStatus,
-				putInCache(EXTENSION_STATUS_KEY, !enabled)
-			);
-		},
-		false
-	);
-}
-
-function updateEditableContainerByStatus() {
+async function updateEditableContainerByStatus(enabled: boolean) {
 	const containers = document.querySelectorAll<HTMLDivElement>(
 		'[role="contentinfo"]'
 	);
 	containers.forEach(function (container) {
 		container.style.opacity = enabled
-			? EXTENSION_STATUS_OPACITY.Enabled
-			: EXTENSION_STATUS_OPACITY.Disabled;
+			? constants.EXTENSION_STATUS_OPACITY.Enabled
+			: constants.EXTENSION_STATUS_OPACITY.Disabled;
 		container.style.pointerEvents = enabled
-			? EXTENSION_STATUS_POINTER_EVENTS.Enabled
-			: EXTENSION_STATUS_POINTER_EVENTS.Disabled;
-	});
-}
-
-async function initializeHttpInputRegex() {
-	const inputHttp = document.querySelector<HTMLInputElement>('[type=text]');
-	const regex = (await getFromCache<string>(EXTENSION_REGEX_KEY)) || '';
-
-	if (inputHttp) {
-		inputHttp.value = regex;
-		regexValue = regex;
-	}
-
-	inputHttp &&
-		inputHttp.addEventListener('change', function (e) {
-			if (!enabled) {
-				return;
-			}
-			regexValue = (e.target as HTMLInputElement).value || '';
-		});
-
-	const btnSaveRegex = document.getElementById(
-		'btn-save-regex'
-	) as HTMLButtonElement;
-	btnSaveRegex?.addEventListener(
-		'click',
-		function () {
-			showButtonStatus(
-				btnSaveRegex,
-				putInCache(EXTENSION_REGEX_KEY, regexValue)
-			);
-		},
-		false
-	);
-}
-
-function initializeHttpCheckbox() {
-	const checkboxHttp =
-		document.querySelectorAll<HTMLInputElement>('[type=checkbox]');
-
-	checkboxHttp.forEach(function (cbx) {
-		checkboxSetState(cbx);
-		checkboxAddEventListener(cbx);
-	});
-}
-
-async function checkboxSetState(cbx: HTMLInputElement) {
-	const checkboxKey = getCheckboxKey(cbx);
-	if (checkboxKey) {
-		cbx.checked = (await getFromCache<boolean>(checkboxKey)) || false;
-	}
-}
-
-function getCheckboxKey(cbx: HTMLInputElement) {
-	const checkboxLabel =
-		cbx.parentNode?.querySelector<HTMLLabelElement>('label');
-	const checkboxKey = checkboxLabel?.innerHTML;
-	return `${EXTENSION_NAME}-${checkboxKey}`;
-}
-
-function checkboxAddEventListener(cbx: HTMLInputElement) {
-	cbx.addEventListener('click', function (e) {
-		if (!enabled) {
-			return;
-		}
-		const checkboxKey = getCheckboxKey(cbx);
-		if (checkboxKey) {
-			putInCache(checkboxKey, cbx.checked);
-		}
+			? constants.EXTENSION_STATUS_POINTER_EVENTS.Enabled
+			: constants.EXTENSION_STATUS_POINTER_EVENTS.Disabled;
 	});
 }
