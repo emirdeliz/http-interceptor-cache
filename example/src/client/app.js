@@ -1,21 +1,42 @@
-setTimeout(async function() {
-	for(const r of ['json', 'info.txt']) {
-		const client = new XMLHttpRequest();
-		client.onload = () => {
-			console.log(client.response) 
-		};
-		client.open("GET", r);
-		client.setRequestHeader("Content-Type", "application/json; charset=utf-8");
-		client.send();
+function makeXMLHttpRequest(method, body) { 
+	const client = new XMLHttpRequest();
+	client.onload = function() { 
+		console.log(client.response); 
+	};
+	client.open(method, `${method}-data`);
+	client.setRequestHeader('Content-Type', 'application/json; charset=utf-8');
+	client.send(body);
+}
 
-		// (function(xhr){
-		// 	xhr.open('GET', r, true);
-		// 	xhr.send();
-		// 	xhr.onload = () => {
-		// 		console.log(xhr.response) 
-		// 	};
-		// })(new XMLHttpRequest)
-		// const res = await fetch(`/${r}`);
-		// console.log({res: await res.text()});
-	}
-}, 1000);
+function buildRandomFormData() { 
+	const data = new FormData();
+	data.append('id', getRandomInt(1000, 100000000), );
+	data.append('user', generateName(), );
+	data.append('pwd', '123');
+	data.append('organization', generateName());
+}
+
+function makePost() { 
+	const formData = buildRandomFormData();
+	makeXMLHttpRequest('post', formData);
+}
+
+function makeGet() { 
+	const params = { id: getRandomInt(1000, 100000000) };
+	makeXMLHttpRequest('get', params);
+}
+
+function makePut() { 
+	const formData = buildRandomFormData();
+	makeXMLHttpRequest('put', formData);
+}
+
+function makeDelete() { 
+	const params = { id: getRandomInt(1000, 100000000) };
+	makeXMLHttpRequest('delete', params);
+}
+
+function makePatch() { 
+	const params = { user: generateName() };
+	makeXMLHttpRequest('patch', params);
+}

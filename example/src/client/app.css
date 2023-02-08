@@ -1,0 +1,15 @@
+body {
+  font-family: "Inter", sans-serif;
+  background-color: #f8f9f9;
+}
+
+.flex-center {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.buttons-container {
+  max-width: 230px;
+}

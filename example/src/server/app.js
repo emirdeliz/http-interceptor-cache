@@ -8,10 +8,31 @@ app.route('/').get((_req, res) => {
 	res.sendFile(resolve(process.cwd() + '/src/client/app.html'));
 });
 
-app.get('/json', (_req, res) => {
+app.post('/post-data', (_req, res) => {
   res.send({
     status: true,
-    message: 'OK, That\'s the message result',
+    message: 'OK, That\'s the message result to POST',
+  });
+});
+
+app.get('/get-data', (_req, res) => {
+  res.send({
+    status: true,
+    message: 'OK, That\'s the message result to GET',
+  });
+});
+
+app.put('/put-data', (_req, res) => {
+  res.send({
+    status: true,
+    message: 'OK, That\'s the message result to PUT',
+  });
+});
+
+app.delete('/delete-data', (_req, res) => {
+  res.send({
+    status: true,
+    message: 'OK, That\'s the message result to DELETE',
   });
 });
 

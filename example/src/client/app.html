@@ -1,9 +1,17 @@
 <!DOCTYPE html>
 <html>
-  <head>
+  <link>
+    <script src="utils.js"></script>
     <script src="app.js"></script>
+    <link rel="stylesheet" href="app.css" />
   </head>
   <body>
-    <div>Hello world</div>
+    <h2>Make requests</h2>
+    <section class="flex-center buttons-container">
+      <button onclick="makePost()">POST</button>
+      <button onclick="makeGet()">GET</button>
+      <button onclick="makePut()">PUT</button>
+      <button onclick="makeDelete()">DELETE</button>
+    </section>
   </body>
 </html>

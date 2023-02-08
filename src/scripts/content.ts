@@ -11,6 +11,17 @@ broadcastUpdate.onmessage = function (e) {
   };
 };
 
+const trySerializableObject = (object: any) => {
+  try {
+    const objSerializable = JSON.stringify(object);
+    JSON.parse(objSerializable);
+    return objSerializable;
+  } catch (err) {
+    console.log(" JSON has failed to preserve Date during stringify/parse ");
+    console.log("  and has generated the following error message", err.message);
+  }
+};
+
 function getCacheFromLocalStorage(url: string, method: string) { 
   const bypassKey = `${constants.EXTENSION_NAME}-${method}` as keyof typeof extensionConfig;
 	const isExtensionEnabled = extensionConfig[constants.EXTENSION_STATUS_KEY];
@@ -49,13 +60,25 @@ function getCacheFromLocalStorage(url: string, method: string) {
       const url = this.url as string;
       // @ts-ignore
       const method = this.method as string;
+
+      const onLoad = self.onload;
+      self.onload = function(e) {
+        const { response } = self;
+        const responseSerializable = trySerializableObject(response);
+        if (responseSerializable) {
+          console.log(`Endpoint ${url} put in cache...`, response);
+          localStorage.setItem(url, responseSerializable);
+        }
+        onLoad?.call(this, e);
+      }
+
       const cache = getCacheFromLocalStorage(url, method);
-      // await utils.getStorageValue<Response>(url);
+      console.log({cache, url, method});
+
       if (cache) {
-        self.abort();
         console.log(`Endpoint ${url} found in cache...`);
         Object.defineProperty(self, 'response', {
-          value: { xpto: 'Cacheeeeeee' },
+          value: JSON.parse(cache),
           writable: false,
         });
         // @ts-ignore
@@ -63,16 +86,12 @@ function getCacheFromLocalStorage(url: string, method: string) {
         // @ts-ignore
         self.status = 200;
         // @ts-ignore
-        self.onload && self.onload({} as any);
+        onLoad && onLoad();
+        self.abort();
+      } else {
+        // @ts-ignore;
+        send.call(this, arguments);
       }
-
-      const onLoad = self.onload;
-      self.onload = function(e) {
-        const cache = localStorage.setItem(url, self.response);
-        onLoad?.call(this, e);
-      }
-      // @ts-ignore;
-      send.call(this, arguments);
     } catch(e) {
       console.log(e);
     }

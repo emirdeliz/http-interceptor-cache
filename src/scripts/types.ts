@@ -7,5 +7,4 @@ export interface ExtensionCache {
 	POST?: boolean;
 	PUT?: boolean;
 	DELETE?: boolean;
-	PATCH?: boolean;
 }
