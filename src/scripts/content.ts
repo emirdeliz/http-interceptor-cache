@@ -16,9 +16,8 @@ const trySerializableObject = (object: any) => {
     const objSerializable = JSON.stringify(object);
     JSON.parse(objSerializable);
     return objSerializable;
-  } catch (err) {
-    console.log(" JSON has failed to preserve Date during stringify/parse ");
-    console.log("  and has generated the following error message", err.message);
+  } catch(err) {
+    return;
   }
 };
 
