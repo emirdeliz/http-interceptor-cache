@@ -12,6 +12,6 @@
 		"express": "^4.18.2"
 	},
 	"scripts": {
-		"start": "node ./src/server/app.js --max-old-space-size=8192"
+		"start": "node ./src/server/server.js --max-old-space-size=8192"
 	}
 }

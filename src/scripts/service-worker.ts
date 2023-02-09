@@ -14,8 +14,9 @@ async function updateToolbarIconByStatus(enabled: boolean) {
 }
 
 chrome.tabs.onUpdated.addListener(async function () {
-	const config = await utils.getStorageValue();
-	await updateToolbarIconByStatus(config['EXTENSION_STATUS_KEY']);
+	const enabledKey = constants.EXTENSION_STATUS_KEY;
+	const isEnabled = await utils.getStorageValue(enabledKey);
+	await updateToolbarIconByStatus(isEnabled);
 });
 
 chrome.storage.onChanged.addListener(async function (changes) {

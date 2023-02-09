@@ -7,11 +7,17 @@
   </head>
   <body>
     <h2>Make requests</h2>
-    <section class="flex-center buttons-container">
-      <button onclick="makePost()">POST</button>
-      <button onclick="makeGet()">GET</button>
-      <button onclick="makePut()">PUT</button>
-      <button onclick="makeDelete()">DELETE</button>
+    <section>
+      <div class="flex-center buttons-container">
+        <button onclick="makePost()">POST</button>
+        <button onclick="makeGet()">GET</button>
+        <button onclick="makePut()">PUT</button>
+        <button onclick="makeDelete()">DELETE</button>
+        <button onclick="makePatch()">PATCH</button>
+      </div>
     </section>
+    <button onclick="clearLocalStorage()" class="button-clear-cache">
+      Clear cache
+    </button>
   </body>
 </html>

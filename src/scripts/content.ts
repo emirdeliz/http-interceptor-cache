@@ -21,16 +21,15 @@ const trySerializableObject = (object: any) => {
   }
 };
 
-function getCacheFromLocalStorage(url: string, method: string) { 
+function checkIsRequestByPass(url: string, method: string) { 
   const bypassKey = `${constants.EXTENSION_NAME}-${method}` as keyof typeof extensionConfig;
-	const isExtensionEnabled = extensionConfig[constants.EXTENSION_STATUS_KEY];
 	const isMethodByPass = extensionConfig[bypassKey];
 	const httpInterceptorCacheRegex = extensionConfig[constants.EXTENSION_REGEX_KEY];
 	const isRegexValidToApplyCache = httpInterceptorCacheRegex
 		? new RegExp(httpInterceptorCacheRegex, 'g').test(url)
 		: true;
-	const isUseCache = isExtensionEnabled && isRegexValidToApplyCache && !isMethodByPass;
-  return isUseCache ? localStorage.getItem(url) : undefined;
+  const isByPass = isRegexValidToApplyCache && isMethodByPass;
+  return isByPass;
 }
 
 (function(w){
@@ -52,13 +51,20 @@ function getCacheFromLocalStorage(url: string, method: string) {
   }
   
   //Monkey patch send
-  XMLHttpRequest.prototype.send = async function() {
+  XMLHttpRequest.prototype.send = async function(body: any) {
     try {
       const self = this;
       // @ts-ignore
       const url = this.url as string;
       // @ts-ignore
       const method = this.method as string;
+
+      const isExtensionEnabled = extensionConfig[constants.EXTENSION_STATUS_KEY];
+      if (!isExtensionEnabled || checkIsRequestByPass(url, method)) {
+        // @ts-ignore;
+        send.call(this, body);
+        return;
+      }
 
       const onLoad = self.onload;
       self.onload = function(e) {
@@ -71,13 +77,12 @@ function getCacheFromLocalStorage(url: string, method: string) {
         onLoad?.call(this, e);
       }
 
-      const cache = getCacheFromLocalStorage(url, method);
-      console.log({cache, url, method});
-
-      if (cache) {
+      const cache = localStorage.getItem(url);
+      if (cache !== '""') {
+        self.abort();
         console.log(`Endpoint ${url} found in cache...`);
         Object.defineProperty(self, 'response', {
-          value: JSON.parse(cache),
+          value: cache,
           writable: false,
         });
         // @ts-ignore
@@ -86,10 +91,6 @@ function getCacheFromLocalStorage(url: string, method: string) {
         self.status = 200;
         // @ts-ignore
         onLoad && onLoad();
-        self.abort();
-      } else {
-        // @ts-ignore;
-        send.call(this, arguments);
       }
     } catch(e) {
       console.log(e);

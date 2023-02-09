@@ -1,6 +1,21 @@
-body {
+html, body {
   font-family: "Inter", sans-serif;
   background-color: #f8f9f9;
+  height: 100%;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+section {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .flex-center {
@@ -11,5 +26,10 @@ body {
 }
 
 .buttons-container {
-  max-width: 230px;
+  width: 300px;
+}
+
+.button-clear-cache {
+  margin-top: 16px;
+  width: 300px;
 }

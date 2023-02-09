@@ -1,42 +1,47 @@
-function makeXMLHttpRequest(method, body) { 
+function clearLocalStorage() { 
+	console.log('Clear local storage...');
+	localStorage.clear();
+}
+
+function makeXMLHttpRequest(method, { formData, query }) { 
 	const client = new XMLHttpRequest();
-	client.onload = function() { 
-		console.log(client.response); 
+	client.open(method.toUpperCase(), `${method}-data${query ? `/${query}` : ''}`, true);
+	client.setRequestHeader('Content-Type', `application/${formData ? 'json' : 'text'}; charset=utf-8`);
+	client.send(formData ? JSON.stringify(formData) : null);
+	client.onload = function() {
+		console.log(client.response);
 	};
-	client.open(method, `${method}-data`);
-	client.setRequestHeader('Content-Type', 'application/json; charset=utf-8');
-	client.send(body);
 }
 
 function buildRandomFormData() { 
-	const data = new FormData();
-	data.append('id', getRandomInt(1000, 100000000), );
-	data.append('user', generateName(), );
-	data.append('pwd', '123');
-	data.append('organization', generateName());
+	return {
+		id: getRandomInt(1000, 100000000),
+		name: generateName(),
+		password: getRandomInt(1000, 100000000)
+	}
 }
 
 function makePost() { 
 	const formData = buildRandomFormData();
-	makeXMLHttpRequest('post', formData);
-}
-
-function makeGet() { 
-	const params = { id: getRandomInt(1000, 100000000) };
-	makeXMLHttpRequest('get', params);
+	makeXMLHttpRequest('post', { formData });
 }
 
 function makePut() { 
 	const formData = buildRandomFormData();
-	makeXMLHttpRequest('put', formData);
+	makeXMLHttpRequest('put', { formData });
+}
+
+function makeGet() { 
+	const query = getRandomInt(1000, 100000000);
+	makeXMLHttpRequest('get', { query });
 }
 
 function makeDelete() { 
-	const params = { id: getRandomInt(1000, 100000000) };
-	makeXMLHttpRequest('delete', params);
+	const query = getRandomInt(1000, 100000000);
+	makeXMLHttpRequest('delete', { query });
 }
 
 function makePatch() { 
-	const params = { user: generateName() };
-	makeXMLHttpRequest('patch', params);
+	const query = generateName();
+	makeXMLHttpRequest('patch', { query });
 }
