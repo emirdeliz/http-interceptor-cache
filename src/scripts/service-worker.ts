@@ -20,7 +20,7 @@ chrome.tabs.onUpdated.addListener(async function () {
 });
 
 chrome.storage.onChanged.addListener(async function (changes) {
-	for (let [_key, { newValue }] of Object.entries(changes)) {
+	for (const [, { newValue }] of Object.entries(changes)) {
 		const isEnabled = newValue[constants.EXTENSION_STATUS_KEY];
 		const isStatusChange = isEnabled != undefined;
 		if (isStatusChange) {

@@ -35,11 +35,17 @@
 		"typescript": "^4.8.4"
 	},
 	"scripts": {
+		"lint:check": "eslint . --ext .ts --fix",
 		"kill": "lsof -P | grep 3000 | awk '{print $2}' | xargs kill -9 && reset",
-		"watch": "yarn kill && yarn start:example 3000 & parcel watch",
+		"watch": "yarn kill && yarn start:example & parcel watch",
 		"build": "[ -d dist ] || parcel build --no-source-maps --no-optimize",
 		"test:e2e": "reset && yarn build && playwright test --quiet",
 		"test:e2e:watch": "yarn test:e2e ; cd tests && chokidar './**/*.ts' -c 'echo \"\n{path} was modified\n\" && cd .. && yarn test:e2e \"{path}\"'",
 		"start:example": "yarn --cwd example start 3000"
+	},
+	"dependencies": {
+		"@typescript-eslint/eslint-plugin": "^5.51.0",
+		"@typescript-eslint/parser": "^5.51.0",
+		"eslint": "^8.34.0"
 	}
 }

@@ -1,7 +1,8 @@
 {
 	"compilerOptions": {
+		"module": "commonjs",
 		"strict": true,
-		"moduleResolution": "Node",
+		"moduleResolution": "node",
 		"target": "esnext",
 		"baseUrl": ".",
 		"allowJs": true,

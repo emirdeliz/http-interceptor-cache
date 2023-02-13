@@ -1,13 +1,14 @@
-import { test as base, chromium, type BrowserContext } from '@playwright/test';
+import * as playwright from '@playwright/test';
+
 import path from 'path';
 
-export const test = base.extend<{
-	context: BrowserContext;
+export const test = playwright.test.extend<{
+	context: playwright.BrowserContext;
 	extensionId: string;
 }>({
-	context: async ({}, use) => {
+	context: async (_c, use) => {
 		const pathToExtension = path.resolve(path.dirname(''));
-		const context = await chromium.launchPersistentContext('', {
+		const context = await playwright.chromium.launchPersistentContext('', {
 			headless: false,
 			args: [
 				`--disable-extensions-except=${pathToExtension}`,

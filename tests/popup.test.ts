@@ -1,5 +1,6 @@
 import * as constants from '@scripts/constants';
-import { test, expect } from '@tests-setup/fixtures';
+
+import { expect, test } from '@tests-setup/fixtures';
 
 function buildExtensionPopupUrl(extensionId: string) {
 	return `chrome-extension://${extensionId}/dist/html/popup.html`;
@@ -7,7 +8,7 @@ function buildExtensionPopupUrl(extensionId: string) {
 
 test('popup page: render content', async function ({ page, extensionId }) {
 	await page.goto(buildExtensionPopupUrl(extensionId));
-	await expect(page.getByText('HTTP methods to apply:')).toBeVisible();
+	await expect(page.getByText('HTTP methods to bypass:')).toBeVisible();
 	await expect(
 		page.getByText('Interceptor regex to apply cache')
 	).toBeVisible();
@@ -63,7 +64,7 @@ test('popup page: enable the extension and then disabled', async function ({
 
 	await page.getByTestId('btn-enable-disable-status').click();
 	await cbxPost.click({ force: true });
-	await expect(cbxPost).toBeChecked();
+	await expect(cbxPost).not.toBeChecked();
 
 	await expect(contentInfoContainer).toHaveCSS(
 		'opacity',

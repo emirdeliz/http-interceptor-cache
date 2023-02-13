@@ -1,0 +1,20 @@
+{
+	"root": true,
+	"parser": "@typescript-eslint/parser",
+	"plugins": ["@typescript-eslint"],
+	"extends": [
+		"eslint:recommended",
+		"plugin:@typescript-eslint/eslint-recommended",
+		"plugin:@typescript-eslint/recommended"
+	],
+	"globals": {
+		"window": true,
+		"document": true,
+		"setTimeout": true,
+		"console": true,
+		"arguments": true
+	},
+	"rules": {
+		"@typescript-eslint/ban-ts-comment": "off"
+	}
+}

@@ -1,5 +1,6 @@
+/* eslint-disable prefer-rest-params */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as constants from './constants';
-import * as utils from '@scripts/utils';
 
 let extensionConfig = {} as any;
 
@@ -53,6 +54,7 @@ function checkIsRequestByPass(url: string, method: string) {
   //Monkey patch send
   XMLHttpRequest.prototype.send = async function(body: any) {
     try {
+      // eslint-disable-next-line @typescript-eslint/no-this-alias
       const self = this;
       // @ts-ignore
       const url = this.url as string;

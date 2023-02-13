@@ -41,7 +41,7 @@ function initializeHttpCheckbox() {
 	const checkboxHttp = document.querySelectorAll<HTMLInputElement>('[type=checkbox]');
 	checkboxHttp.forEach(async function (cbx) {
 		const checkboxKey = utils.getCheckboxKey(cbx);
-		cbx.addEventListener('click', function (e) {
+		cbx.addEventListener('click', function () {
 			utils.setStorageValue(checkboxKey, cbx.checked);
 			updateConfigOnClient(checkboxKey, cbx.checked);
 		});
@@ -60,6 +60,9 @@ async function initializeHttpStatus() {
 		'click',
 		function () {
 			enabled = !enabled;
+
+			console.debug({enabled})
+
 			showButtonStatus(
 				btnEnableDisableStatus,
 				utils.setStorageValue(constants.EXTENSION_STATUS_KEY, enabled)
