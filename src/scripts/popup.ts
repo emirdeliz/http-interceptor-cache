@@ -20,7 +20,7 @@ async function updateConfigOnClient(key: string, value: string|boolean) {
 async function initializeHttpInputRegex() {
 	const inputRegex = document.querySelector<HTMLInputElement>('[type=text]');
 	if (inputRegex) {
-		inputRegex.value = await utils.getStorageValue<string>('EXTENSION_REGEX_KEY');
+		inputRegex.value = await utils.getStorageValue<string>(constants.EXTENSION_REGEX_KEY);
 	}
 
 	const btnSaveRegex = document.querySelector<HTMLButtonElement>('#btn-save-regex');
@@ -29,9 +29,9 @@ async function initializeHttpInputRegex() {
 		function () {
 			showButtonStatus(
 				btnSaveRegex,
-				utils.setStorageValue('EXTENSION_REGEX_KEY', inputRegex?.value || '')
+				utils.setStorageValue(constants.EXTENSION_REGEX_KEY, inputRegex?.value || '')
 			);
-			updateConfigOnClient('EXTENSION_REGEX_KEY', inputRegex?.value || '');
+			updateConfigOnClient(constants.EXTENSION_REGEX_KEY, inputRegex?.value || '');
 		},
 		false
 	);

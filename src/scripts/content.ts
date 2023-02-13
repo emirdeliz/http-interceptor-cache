@@ -27,8 +27,8 @@ function checkIsRequestByPass(url: string, method: string) {
 	const httpInterceptorCacheRegex = extensionConfig[constants.EXTENSION_REGEX_KEY];
 	const isRegexValidToApplyCache = httpInterceptorCacheRegex
 		? new RegExp(httpInterceptorCacheRegex, 'g').test(url)
-		: true;
-  const isByPass = isRegexValidToApplyCache && isMethodByPass;
+    : true;
+  const isByPass = !isRegexValidToApplyCache || isMethodByPass;
   return isByPass;
 }
 
